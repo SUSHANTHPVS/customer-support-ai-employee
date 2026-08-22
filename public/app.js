@@ -28,11 +28,23 @@ const ESC_MAP = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
 const ESC_RE  = /[&<>"]/g;
 
 // ── DOM Refs ──────────────────────────────────────────────────────────────────
+const appRoot           = document.querySelector(".app");
+const sidebar           = document.querySelector(".sidebar");
 const messagesContainer = document.getElementById("messagesContainer");
 const messageInput      = document.getElementById("messageInput");
 const sendBtn           = document.getElementById("sendBtn");
 const charCount         = document.getElementById("charCount");
 const kbCountEl         = document.getElementById("kbCount");
+const mobileMenuBtn     = document.querySelector(".mobile-menu-btn");
+const sidebarCloseBtn   = document.querySelector(".sidebar-close-btn");
+const mobileSidebarHandle = document.querySelector(".mobile-sidebar-handle");
+const EDGE_GRAB_ZONE = 24;
+const DRAG_ACTIVE_SLOP = 12;
+const SWIPE_OPEN_THRESHOLD = 72;
+const SIDEBAR_DRAG_MAX = () => Math.min(window.innerWidth * 0.82, 320);
+let touchStartX = 0;
+let touchStartY = 0;
+let touchState = null;
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
@@ -40,7 +52,132 @@ document.addEventListener("DOMContentLoaded", () => {
   showWelcome();
   messageInput.addEventListener("input",   onInputChange);
   messageInput.addEventListener("keydown", onKeyDown);
+  attachMobileMenuHandlers();
 });
+
+function attachMobileMenuHandlers() {
+  if (!mobileMenuBtn && !mobileSidebarHandle) return;
+
+  const setSidebarVisualOffset = (offset) => {
+    const max = SIDEBAR_DRAG_MAX();
+    const safeOffset = Math.min(Math.max(offset, 0), max);
+    sidebar.style.setProperty("--sidebar-pan", `${safeOffset}px`);
+  };
+
+  const openSidebar = () => {
+    appRoot.classList.add("sidebar-open");
+    appRoot.classList.remove("sidebar-dragging");
+    sidebar.style.setProperty("--sidebar-pan", "100%");
+    mobileMenuBtn?.setAttribute("aria-expanded", "true");
+  };
+
+  const closeSidebar = () => {
+    appRoot.classList.remove("sidebar-open");
+    appRoot.classList.remove("sidebar-dragging");
+    sidebar.style.setProperty("--sidebar-pan", "0px");
+    mobileMenuBtn?.setAttribute("aria-expanded", "false");
+  };
+
+  mobileMenuBtn?.addEventListener("click", () => {
+    const isOpen = appRoot.classList.toggle("sidebar-open");
+    sidebar.style.setProperty("--sidebar-pan", isOpen ? "100%" : "0px");
+    mobileMenuBtn.setAttribute("aria-expanded", String(isOpen));
+  });
+
+  mobileSidebarHandle?.addEventListener("click", openSidebar);
+
+  if (sidebarCloseBtn) {
+    sidebarCloseBtn.addEventListener("click", closeSidebar);
+  }
+
+  appRoot.addEventListener("click", (event) => {
+    if (window.innerWidth > 640) return;
+    const clickedSidebar = sidebar && sidebar.contains(event.target);
+    const clickedMenu = mobileMenuBtn ? mobileMenuBtn.contains(event.target) : false;
+    const clickedHandle = mobileSidebarHandle ? mobileSidebarHandle.contains(event.target) : false;
+    const clickedQuickTopic = event.target.closest(".topic-btn");
+    const clickedNavItem = event.target.closest(".nav-item");
+
+    if (!clickedSidebar && !clickedMenu && !clickedHandle && !clickedQuickTopic && !clickedNavItem && appRoot.classList.contains("sidebar-open")) {
+      closeSidebar();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && window.innerWidth <= 640 && appRoot.classList.contains("sidebar-open")) {
+      closeSidebar();
+    }
+  });
+
+  document.addEventListener("touchstart", (event) => {
+    if (window.innerWidth > 640) return;
+
+    const touch = event.changedTouches[0];
+    const isSidebarVisible = appRoot.classList.contains("sidebar-open");
+    const nearEdge = touch.clientX <= EDGE_GRAB_ZONE;
+
+    if (!isSidebarVisible && !nearEdge) return;
+
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    touchState = {
+      startedOpen: isSidebarVisible,
+      dragOffset: 0,
+      moved: false,
+    };
+  }, { passive: true });
+
+  document.addEventListener("touchmove", (event) => {
+    if (window.innerWidth > 640 || !touchState) return;
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = touch.clientY - touchStartY;
+
+    if (Math.abs(deltaX) < DRAG_ACTIVE_SLOP || Math.abs(deltaX) < Math.abs(deltaY) * 1.15) {
+      return;
+    }
+
+    touchState.dragOffset = deltaX;
+    touchState.moved = true;
+    appRoot.classList.add("sidebar-dragging");
+
+    const max = SIDEBAR_DRAG_MAX();
+    const visualOffset = touchState.startedOpen ? Math.min(Math.max(max + deltaX, 0), max) : Math.min(Math.max(deltaX, 0), max);
+    setSidebarVisualOffset(visualOffset);
+    event.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener("touchend", (event) => {
+    if (window.innerWidth > 640 || !touchState) return;
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = touch.clientY - touchStartY;
+    const max = SIDEBAR_DRAG_MAX();
+
+    appRoot.classList.remove("sidebar-dragging");
+
+    if (Math.abs(deltaX) < SWIPE_OPEN_THRESHOLD || Math.abs(deltaX) < Math.abs(deltaY) * 1.15) {
+      if (touchState.startedOpen && Math.abs(deltaX) < SWIPE_OPEN_THRESHOLD && !touchState.moved) {
+        closeSidebar();
+      }
+      touchState = null;
+      sidebar.style.setProperty("--sidebar-pan", appRoot.classList.contains("sidebar-open") ? "100%" : "0px");
+      return;
+    }
+
+    const shouldOpen = touchState.startedOpen ? deltaX > -max * 0.35 : deltaX > max * 0.35;
+
+    if (shouldOpen) {
+      openSidebar();
+    } else {
+      closeSidebar();
+    }
+
+    touchState = null;
+  }, { passive: true });
+}
 
 function loadKBCount() {
   // Lightweight count endpoint — no longer fetches the full KB article list
@@ -142,6 +279,10 @@ function sendMessage() {
 function sendQuickMessage(text) {
   messageInput.value = text;
   onInputChange();
+  if (window.innerWidth <= 640) {
+    appRoot.classList.remove("sidebar-open");
+    mobileMenuBtn?.setAttribute("aria-expanded", "false");
+  }
   sendMessage();
 }
 
@@ -153,6 +294,10 @@ function startNewChat() {
   messageInput.value = "";
   messageInput.style.height = "auto";
   charCount.textContent = "0 / 2000";
+  if (window.innerWidth <= 640) {
+    appRoot.classList.remove("sidebar-open");
+    mobileMenuBtn?.setAttribute("aria-expanded", "false");
+  }
   messageInput.focus();
 }
 

@@ -22,11 +22,18 @@
 </head>
 <body>
   <div class="app">
+    <button class="mobile-sidebar-handle" type="button" aria-label="Open menu" title="Open menu">
+      <span>☰</span>
+    </button>
+
     <!-- Sidebar -->
     <aside class="sidebar">
-      <div class="sidebar-logo">
-        <span class="logo-icon">☁️</span>
-        <span class="logo-text">CloudDesk</span>
+      <div class="sidebar-top-row">
+        <div class="sidebar-logo">
+          <span class="logo-icon">☁️</span>
+          <span class="logo-text">CloudDesk</span>
+        </div>
+        <button class="sidebar-close-btn" type="button" aria-label="Close menu">✕</button>
       </div>
       <div class="sidebar-label">Support Center</div>
 
@@ -59,6 +66,9 @@
     <main class="chat-main">
       <header class="chat-header">
         <div class="header-info">
+          <button class="mobile-menu-btn" type="button" aria-label="Open topics" aria-expanded="false" title="Open menu">
+            ☰
+          </button>
           <div class="agent-avatar">🤖</div>
           <div>
             <div class="agent-name">CloudDesk Support AI</div>
