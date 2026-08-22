@@ -1,0 +1,93 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run Support AI on 3000",
+			"type": "shell",
+			"command": "npm start",
+			"args": [],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Start customer support app on port 3000",
+			"type": "shell",
+			"command": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Set-Location 'C:\\Users\\SUSHANTH\\Desktop\\Customer Support AI Employee'; npm start\"",
+			"args": [],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Verify Node runtime",
+			"type": "shell",
+			"command": "\"C:\\Program Files\\nodejs\\node.exe\" -p \"1 + 1\"",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Start app on 3000",
+			"type": "shell",
+			"command": "cmd /d /s /c \"cd /d \\\"C:\\Users\\SUSHANTH\\Desktop\\Customer Support AI Employee\\\" && npm start\"",
+			"args": [],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Quick shell check",
+			"type": "shell",
+			"command": "cmd /d /s /c \"echo hi\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Validate RAG fix in cmd",
+			"type": "shell",
+			"command": "cmd /d /s /c \"cd /d \\\"C:\\Users\\SUSHANTH\\Desktop\\Customer Support AI Employee\\\" && node -e \\\"const { retrieve } = require('./src/rag'); const samples=['my mobile app keeps freezing','my debit card was declined','my account is locked','how much does CloudDesk cost','how do I contact support']; for (const q of samples) { const r = retrieve(q,{topK:3}); console.log(q + ' => ' + r[0].entry.id + ' | ' + r.map(x => x.entry.id).join(',')); }\\\"\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Validate RAG sample matches",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"-e",
+				"const { retrieve } = require('./src/rag'); const samples=['my mobile app keeps freezing','my debit card was declined','my account is locked','how much does CloudDesk cost','how do I contact support']; for (const q of samples) { const r = retrieve(q,{ topK:3 }); console.log(q + ' => ' + r[0].entry.id + ' | ' + r.map(x => x.entry.id).join(',')); }"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Verify RAG fix with project script",
+			"type": "shell",
+			"command": "Set-Location 'C:\\Users\\SUSHANTH\\Desktop\\Customer Support AI Employee'; node .\\check-rag.js",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Check app health endpoint",
+			"type": "shell",
+			"command": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Invoke-RestMethod -Uri 'http://localhost:3000/api/health'\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Live chat verification",
+			"type": "shell",
+			"command": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { $body = '{\\\"message\\\":\\\"my mobile app keeps freezing\\\"}'; Invoke-RestMethod -Uri 'http://localhost:3000/api/chat' -Method Post -ContentType 'application/json' -Body $body }\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}

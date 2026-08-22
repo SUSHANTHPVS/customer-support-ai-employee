@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CloudDesk Support</title>
+
+  <!--
+    Preconnect to both Google Fonts hosts.
+    The second preconnect (fonts.gstatic.com) is the actual font binary CDN —
+    without it the browser starts a new TCP connection for the font file,
+    adding ~150ms to first render.
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <span class="logo-icon">☁️</span>
+        <span class="logo-text">CloudDesk</span>
+      </div>
+      <div class="sidebar-label">Support Center</div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" onclick="startNewChat()">
+          <span>💬</span> New Conversation
+        </button>
+      </nav>
+
+      <div class="sidebar-section-title">Quick Topics</div>
+      <div class="quick-topics">
+        <button class="topic-btn" data-msg="How do I update my payment method?">💳 Payment Methods</button>
+        <button class="topic-btn" data-msg="I forgot my password and cannot log in">🔑 Reset Password</button>
+        <button class="topic-btn" data-msg="The app is not loading and showing errors">🔧 App Not Working</button>
+        <button class="topic-btn" data-msg="How do I invite a team member?">👥 Team Members</button>
+        <button class="topic-btn" data-msg="What plans does CloudDesk offer and how much do they cost?">📋 Plans &amp; Pricing</button>
+        <button class="topic-btn" data-msg="I need to speak with a human agent">🙋 Talk to Human</button>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="status-indicator">
+          <span class="status-dot green"></span>
+          <span>AI Support Online</span>
+        </div>
+        <div class="kb-count" id="kbCount">Loading KB...</div>
+      </div>
+    </aside>
+
+    <!-- Main Chat -->
+    <main class="chat-main">
+      <header class="chat-header">
+        <div class="header-info">
+          <div class="agent-avatar">🤖</div>
+          <div>
+            <div class="agent-name">CloudDesk Support AI</div>
+            <div class="agent-status">
+              <span class="status-dot green small"></span> Tier-1 Triage · Always Online
+            </div>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="icon-btn" onclick="startNewChat()" title="New chat">🔄</button>
+        </div>
+      </header>
+
+      <!-- Messages -->
+      <div class="messages-container" id="messagesContainer"></div>
+
+      <!-- Input -->
+      <div class="input-area">
+        <div class="input-wrapper">
+          <textarea
+            id="messageInput"
+            placeholder="Describe your issue or ask a question..."
+            rows="1"
+            maxlength="2000"
+          ></textarea>
+          <button id="sendBtn" onclick="sendMessage()" title="Send">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+        <div class="input-footer">
+          <span id="charCount" class="char-count">0 / 2000</span>
+          <span class="disclaimer">AI responses are based on CloudDesk documentation. For urgent issues, escalation to a human agent is automatic.</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!--
+    defer: script runs after DOM parsing completes regardless of placement.
+    Also moves quick-topic click handling out of inline onclick to a delegated
+    listener in app.js (data-msg attribute pattern).
+  -->
+  <script src="app.js" defer></script>
+
+  <!-- Delegated click handler for quick-topic buttons (no inline JS) -->
+  <script defer>
+    document.querySelector(".quick-topics").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-msg]");
+      if (btn) sendQuickMessage(btn.dataset.msg);
+    });
+  </script>
+</body>
+</html>
